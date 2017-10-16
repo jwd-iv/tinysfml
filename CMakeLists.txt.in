@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 2.8.2)
+include(ExternalProject)
+
+project(tinysfml-reqs NONE)
+
+ExternalProject_Add(tinyeng
+    GIT_REPOSITORY    https://github.com/jwd-iv/tinyeng.git
+    GIT_TAG           master
+    SOURCE_DIR        "${TINYSFML_SOURCE_DIR}/../tinyeng"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    TEST_COMMAND      ""
+    UPDATE_DISCONNECTED 1
+)
+
+ExternalProject_Add(SFML
+    GIT_REPOSITORY    https://github.com/SFML/SFML.git
+    GIT_TAG           master
+    SOURCE_DIR        "${TINYSFML_SOURCE_DIR}/../ext/SFML"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND     ""
+    INSTALL_COMMAND   ""
+    TEST_COMMAND      ""
+)
