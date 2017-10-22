@@ -47,9 +47,9 @@ add_subdirectory("${TINYSFML_SOURCE_DIR}/../ext/SFML" "${CMAKE_CURRENT_BINARY_DI
 message(STATUS "SFML found and added to build!")
 
 include_directories(include
-                    ${SFML_SOURCE_DIR}/include
-                    ${TINY_SOURCE_DIR}/include
-                    ${RIKU_SOURCE_DIR}/include)
+                    ../ext/SFML/include
+                    ../tinyeng/include
+                    ../RIKU/include)
 
 add_subdirectory(src)
 if(TINY_SFML_GFX AND TINY_SFML_SFX AND TINY_SFML_SYS)

@@ -1,6 +1,6 @@
 file(GLOB_RECURSE TINYSFML_SYS_src *.cpp)
 file(GLOB_RECURSE TINYSFML_SYS_hdr
-  {PROJECT_SOURCE_DIR}/include/tiny/sfml/sys/*.h*)
+  ../../include/tiny/sfml/system/*.h*)
 
 add_library(tinysfml-sys STATIC ${TINYSFML_SYS_src} ${TINYSFML_SYS_hdr}) 
 set_target_properties(tinysfml-sys PROPERTIES
