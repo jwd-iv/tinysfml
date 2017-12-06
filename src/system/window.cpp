@@ -3,6 +3,7 @@
 #include "SFML\System.hpp"
 #include "SFML\Window.hpp"
 #include "SFML\OpenGL.hpp"
+#include "tiny\editor\inspector.h"
 
 static sf::Window* g_sWindow = NULL;
 
@@ -50,6 +51,9 @@ void SFMLWindow::update(float dt)
   sf::Event event;
   while (g_sWindow->pollEvent(event))
   {
+    if (tiny::systems::get<tiny::inspector>()->receiveWindowEvent(&event))
+      continue;
+
     // close window: exit
     if (event.type == sf::Event::Closed)
       tiny::engine::get().stop();

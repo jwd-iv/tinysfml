@@ -2,6 +2,7 @@
 
 rkLink(tiny_core)
 rkLink(tinySFMLsys)
+rkLink(tinyedit)
 
 int main(void)
 {
