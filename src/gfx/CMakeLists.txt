@@ -1,6 +1,6 @@
 file(GLOB_RECURSE TINYSFML_GFX_src *.cpp)
 file(GLOB_RECURSE TINYSFML_GFX_hdr
-  {PROJECT_SOURCE_DIR}/include/tiny/sfml/gfx/*.h*)
+  ${PROJECT_SOURCE_DIR}/include/tiny/sfml/gfx/*.h*)
 
 add_library(tinysfml-gfx STATIC ${TINYSFML_GFX_src} ${TINYSFML_GFX_hdr}) 
 set_target_properties(tinysfml-gfx PROPERTIES

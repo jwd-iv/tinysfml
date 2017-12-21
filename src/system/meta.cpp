@@ -4,6 +4,7 @@
 #include "tiny\sfml\system\window.h"
 
 rkExportLib(tinySFMLsys)
+rkLink(tinyedit)
 
 rkType(SFMLFRC,      rkParent(tiny::frc) rkStaticFactory)
 rkType(SFMLWindow,   rkParent(tiny::window) rkStaticFactory)
