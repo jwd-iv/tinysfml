@@ -14,6 +14,7 @@ void SFMLWindow::initialize()
   // Request a 24-bits depth buffer when creating the window
   sf::ContextSettings contextSettings;
   contextSettings.depthBits = 24;
+  contextSettings.sRgbCapable = false;
   // Create the main window
   g_sWindow = new sf::Window(sf::VideoMode(640, 480), "SFML window with OpenGL", sf::Style::Default, contextSettings);
   g_sWindow->setVerticalSyncEnabled(true);
@@ -69,6 +70,7 @@ void SFMLWindow::update(float dt)
 
   // Clear the depth buffer
   glClear(GL_DEPTH_BUFFER_BIT);
+  g_sWindow->setActive();
 }
 
 void SFMLWindow::close()
@@ -105,6 +107,7 @@ void SFMLWindow::render()
 {
   if (g_sWindow != NULL)
     g_sWindow->display();
+  glClear(GL_COLOR_BUFFER_BIT);
 }
 
 unsigned SFMLWindow::width() const

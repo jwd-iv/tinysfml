@@ -45,6 +45,7 @@ endif()
 set(SFML_BUILD_NETWORK       OFF CACHE BOOL " " FORCE)
 set(SFML_BUILD_SHARED_LIBS   OFF CACHE BOOL " " FORCE)
 set(SFML_USE_STATIC_STD_LIBS OFF CACHE BOOL " " FORCE)
+add_definitions(-DSFML_STATIC)
 add_subdirectory("${tinysfml_SOURCE_DIR}/../ext/SFML" "${CMAKE_CURRENT_BINARY_DIR}/sfml_build" EXCLUDE_FROM_ALL)
 message(STATUS "SFML found and added to build!")
 
