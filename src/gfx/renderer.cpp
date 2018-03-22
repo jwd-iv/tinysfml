@@ -53,14 +53,15 @@ static const GLfloat cube[] =
    20,  20,  20,  1, 1
 };
 
-sf::Texture* tex = NULL;
 static float timeElapsed = .0f;
+
+using namespace tiny;
 
 void SFMLRenderer::initialize()
 {
   // Load a texture to apply to our 3D cube
-  tex = new sf::Texture;
-  if (!tex->loadFromFile("texture.jpg"))
+  tex = systems::get<resourcemanager>()->load("texture.jpg");
+  if (tex.data() == NULL)
     DebugBreak();
 
   // Enable Z-buffer read and write
@@ -72,12 +73,12 @@ void SFMLRenderer::initialize()
   glDisable(GL_LIGHTING);
 
   // Configure the viewport (the same size as the window)
-  glViewport(0, 0, tiny::systems::get<tiny::window>()->width(), tiny::systems::get<tiny::window>()->height());
+  glViewport(0, 0, systems::get<window>()->width(), systems::get<window>()->height());
 
   // Setup a perspective projection
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  GLfloat ratio = static_cast<float>(tiny::systems::get<tiny::window>()->width()) / tiny::systems::get<tiny::window>()->height();
+  GLfloat ratio = static_cast<float>(systems::get<window>()->width()) / systems::get<window>()->height();
   glFrustum(-ratio, ratio, -1.f, 1.f, 1.f, 500.f);
 
   // Enable position and texture coordinates vertex components
@@ -98,13 +99,12 @@ void SFMLRenderer::update(float dt)
 
 void SFMLRenderer::close()
 {
-  delete tex;
 }
 
 void SFMLRenderer::render(float)
 {
   glEnable(GL_TEXTURE_2D);
-  sf::Texture::bind(tex);
+  sf::Texture::bind(tex->tex);
 
   // Clear the depth buffer
   glClear(GL_DEPTH_BUFFER_BIT);

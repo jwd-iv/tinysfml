@@ -1,3 +1,7 @@
+#pragma once
+
+#include "texture.h"
+
 struct SFMLRenderer : public tiny::renderer
 {
   // Inherited via renderer
@@ -6,6 +10,7 @@ struct SFMLRenderer : public tiny::renderer
   virtual void close();
   virtual void render(float);
 
+  sfmlTexture::handle tex = NULL;
 
   rkMetaHook(SFMLRenderer);
 };
