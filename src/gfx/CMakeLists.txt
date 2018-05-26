@@ -12,6 +12,10 @@ set_target_properties(tinysfml-gfx PROPERTIES
 target_link_libraries(tinysfml-gfx tiny)
 target_link_libraries(tinysfml-gfx sfml-graphics)
 
+if(TINY_EDITOR)
+  target_link_libraries(tinysfml-gfx tiny-editor)
+endif()
+
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/tiny/sfml/gfx
     DESTINATION include/tiny/sfml

@@ -5,52 +5,16 @@
 #include "tiny\sfml\gfx\camera.h"
 #include "tiny\sfml\gfx\sprite.h"
 #include "tiny\sfml\gfx\texture.h"
+#include "tiny\editor\inspector.h"
 
-// Define a 3D cube (6 faces made of 2 triangles composed by 3 vertices)
-static const GLfloat cube[] =
+static const GLfloat square[] =
 {
-  // positions    // texture coordinates
-  -20, -20, -20,  0, 0,
-  -20,  20, -20,  1, 0,
-  -20, -20,  20,  0, 1,
-  -20, -20,  20,  0, 1,
-  -20,  20, -20,  1, 0,
-  -20,  20,  20,  1, 1,
-
-  20, -20, -20,  0, 0,
-  20,  20, -20,  1, 0,
-  20, -20,  20,  0, 1,
-  20, -20,  20,  0, 1,
-  20,  20, -20,  1, 0,
-  20,  20,  20,  1, 1,
-
-  -20, -20, -20,  0, 0,
-   20, -20, -20,  1, 0,
-  -20, -20,  20,  0, 1,
-  -20, -20,  20,  0, 1,
-   20, -20, -20,  1, 0,
-   20, -20,  20,  1, 1,
-
-  -20,  20, -20,  0, 0,
-   20,  20, -20,  1, 0,
-  -20,  20,  20,  0, 1,
-  -20,  20,  20,  0, 1,
-   20,  20, -20,  1, 0,
-   20,  20,  20,  1, 1,
-
-  -20, -20, -20,  0, 0,
-   20, -20, -20,  1, 0,
-  -20,  20, -20,  0, 1,
-  -20,  20, -20,  0, 1,
-   20, -20, -20,  1, 0,
-   20,  20, -20,  1, 1,
-
-  -20, -20,  20,  0, 0,
-   20, -20,  20,  1, 0,
-  -20,  20,  20,  0, 1,
-  -20,  20,  20,  0, 1,
-   20, -20,  20,  1, 0,
-   20,  20,  20,  1, 1
+  -20, -20, 0,  0, 0,
+   20, -20, 0,  1, 0,
+  -20,  20, 0,  0, 1,
+  -20,  20, 0,  0, 1,
+   20, -20, 0,  1, 0,
+   20,  20, 0,  1, 1
 };
 
 static float timeElapsed = .0f;
@@ -60,7 +24,7 @@ using namespace tiny;
 void SFMLRenderer::initialize()
 {
   // Load a texture to apply to our 3D cube
-  tex = systems::get<resourcemanager>()->load("texture.jpg");
+  tex = systems::get<resourcemanager>()->load("daisy.png");
   if (tex.data() == NULL)
     DebugBreak();
 
@@ -84,17 +48,36 @@ void SFMLRenderer::initialize()
   // Enable position and texture coordinates vertex components
   glEnableClientState(GL_VERTEX_ARRAY);
   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glVertexPointer(3, GL_FLOAT, 5 * sizeof(GLfloat), cube);
-  glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(GLfloat), cube + 3);
+  glVertexPointer(3, GL_FLOAT, 5 * sizeof(GLfloat), square);
+  glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(GLfloat), square + 3);
 
   // Disable normal and color vertex components
   glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY); 
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
+
+bool inspected = false;
 
 void SFMLRenderer::update(float dt)
 {
   timeElapsed += dt;
+
+  if(!inspected)
+  for (auto spacename : engine::get().spaces)
+  {
+    for (auto& sprite : spacename.second->get_all(riku::get<SFMLSprite>()))
+    {
+      systems::get<inspector>()->inspect(sprite);
+      inspected = true;
+      break;
+    }
+
+    if (inspected)
+      break;
+  }
 }
 
 void SFMLRenderer::close()
@@ -104,19 +87,35 @@ void SFMLRenderer::close()
 void SFMLRenderer::render(float)
 {
   glEnable(GL_TEXTURE_2D);
-  sf::Texture::bind(tex->tex);
 
   // Clear the depth buffer
   glClear(GL_DEPTH_BUFFER_BIT);
 
   // Apply some transformations
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glTranslatef(0, 0, -100.f);
-  glRotatef(timeElapsed * 50.f, 1.f, 0.f, 0.f);
-  glRotatef(timeElapsed * 30.f, 0.f, 1.f, 0.f);
-  glRotatef(timeElapsed * 90.f, 0.f, 0.f, 1.f);
 
-  // Draw the cube
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  for (auto space : engine::get().spaces)
+  {
+	  if (space.second.data() == NULL || !space.second->active)
+		  continue;
+
+	  for (auto& spritevar : space.second->get_all(riku::get<SFMLSprite>()))
+	  {
+		  auto& sprite = spritevar.as<SFMLSprite>();
+
+		  glPushMatrix();
+		  glLoadIdentity();
+		  sf::Texture::bind(tex->tex);
+
+		  glTranslatef(-sprite.x, -sprite.y, -sprite.z);
+		  glRotatef(timeElapsed * sprite.rvx, 1.f, 0.f, 0.f);
+		  glRotatef(timeElapsed * sprite.rvy, 0.f, 1.f, 0.f);
+		  glRotatef(timeElapsed * sprite.rvz, 0.f, 0.f, 1.f);
+
+		  // Draw the cube
+		  glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		  glPopMatrix();
+	  }
+  }
 }

@@ -5,7 +5,7 @@
 
 std::string sfmlTexture::extensions() const
 {
-  return "png jpg bmp";
+  return "png jpg bmp tif";
 }
 
 bool sfmlTexture::load(tiny::file f)

@@ -10,4 +10,7 @@ rkType(SFMLRenderer, rkParent(tiny::renderer) rkDefaultFactory)
 
 rkType(sfmlTexture, rkParent(tiny::resource) rkDefaultFactory)
 
-rkType(SFMLSprite, rkParent(tiny::component) rkDefaultFactory)
+rkType(SFMLSprite, rkParent(tiny::component) rkDefaultFactory
+  rkMember(x)   rkMember(y)   rkMember(z)
+  rkMember(rvx) rkMember(rvy) rkMember(rvz)
+)
