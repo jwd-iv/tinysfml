@@ -6,6 +6,7 @@
 #include "tiny\sfml\gfx\sprite.h"
 #include "tiny\sfml\gfx\texture.h"
 #include "tiny\editor\inspector.h"
+#include <algorithm>
 
 static const GLfloat square[] =
 {
@@ -23,11 +24,6 @@ using namespace tiny;
 
 void SFMLRenderer::initialize()
 {
-  // Load a texture to apply to our 3D cube
-  tex = systems::get<resourcemanager>()->load("daisy.png");
-  if (tex.data() == NULL)
-    DebugBreak();
-
   // Enable Z-buffer read and write
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
@@ -99,18 +95,26 @@ void SFMLRenderer::render(float)
 	  if (space.second.data() == NULL || !space.second->active)
 		  continue;
 
-	  for (auto& spritevar : space.second->get_all(riku::get<SFMLSprite>()))
+    auto sprites = space.second->get_all(riku::get<SFMLSprite>()).vec;
+    
+    std::sort(sprites.begin(), sprites.end(),
+      [](rk::variant const& a, rk::variant const& b) -> bool {
+        return a.as<SFMLSprite>().pos.z > b.as<SFMLSprite>().pos.z;
+      }
+    );
+
+	  for (auto& spritevar : sprites)
 	  {
 		  auto& sprite = spritevar.as<SFMLSprite>();
 
 		  glPushMatrix();
 		  glLoadIdentity();
-		  sf::Texture::bind(tex->tex);
+		  sf::Texture::bind(sprite.tex->tex);
 
-		  glTranslatef(-sprite.x, -sprite.y, -sprite.z);
-		  glRotatef(timeElapsed * sprite.rvx, 1.f, 0.f, 0.f);
-		  glRotatef(timeElapsed * sprite.rvy, 0.f, 1.f, 0.f);
-		  glRotatef(timeElapsed * sprite.rvz, 0.f, 0.f, 1.f);
+		  glTranslatef(-sprite.pos.x, -sprite.pos.y, -sprite.pos.z);
+		  glRotatef(timeElapsed * sprite.rot.x, 1.f, 0.f, 0.f);
+		  glRotatef(timeElapsed * sprite.rot.y, 0.f, 1.f, 0.f);
+		  glRotatef(timeElapsed * sprite.rot.z, 0.f, 0.f, 1.f);
 
 		  // Draw the cube
 		  glDrawArrays(GL_TRIANGLES, 0, 6);
