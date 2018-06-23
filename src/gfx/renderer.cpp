@@ -99,7 +99,7 @@ void SFMLRenderer::render(float)
     
     std::sort(sprites.begin(), sprites.end(),
       [](rk::variant const& a, rk::variant const& b) -> bool {
-        return a.as<SFMLSprite>().pos.z > b.as<SFMLSprite>().pos.z;
+        return a.as<SFMLSprite>().t.z > b.as<SFMLSprite>().t.z;
       }
     );
 
@@ -111,10 +111,8 @@ void SFMLRenderer::render(float)
 		  glLoadIdentity();
 		  sf::Texture::bind(sprite.tex->tex);
 
-		  glTranslatef(-sprite.pos.x, -sprite.pos.y, -sprite.pos.z);
-		  glRotatef(timeElapsed * sprite.rot.x, 1.f, 0.f, 0.f);
-		  glRotatef(timeElapsed * sprite.rot.y, 0.f, 1.f, 0.f);
-		  glRotatef(timeElapsed * sprite.rot.z, 0.f, 0.f, 1.f);
+		  glTranslatef(-sprite.t.x, -sprite.t.y, -sprite.t.z);
+		  glRotatef(timeElapsed * sprite.r, 0.f, 0.f, 1.f);
 
 		  // Draw the cube
 		  glDrawArrays(GL_TRIANGLES, 0, 6);
