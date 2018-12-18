@@ -10,12 +10,12 @@
 
 static const GLfloat square[] =
 {
-  -20, -20, 0,  0, 0,
-   20, -20, 0,  1, 0,
-  -20,  20, 0,  0, 1,
-  -20,  20, 0,  0, 1,
-   20, -20, 0,  1, 0,
-   20,  20, 0,  1, 1
+  -.5f, 0.f, 0.f, 0.f, 1.f,
+   .5f, 0.f, 0.f, 1.f, 1.f,
+  -.5f, 1.f, 0.f, 0.f, 0.f,
+  -.5f, 1.f, 0.f, 0.f, 0.f,
+   .5f, 0.f, 0.f, 1.f, 1.f,
+   .5f, 1.f, 0.f, 1.f, 0.f
 };
 
 static float timeElapsed = .0f;
@@ -38,8 +38,8 @@ void SFMLRenderer::initialize()
   // Setup a perspective projection
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  GLfloat ratio = static_cast<float>(systems::get<window>()->width()) / systems::get<window>()->height();
-  glFrustum(-ratio, ratio, -1.f, 1.f, 1.f, 500.f);
+  GLfloat ratio = float(systems::get<window>()->width()) / float(systems::get<window>()->height());
+  glOrtho(-ratio * .5f, ratio * .5f, 0.f, 1.f, 0.f, 1000.f);
 
   // Enable position and texture coordinates vertex components
   glEnableClientState(GL_VERTEX_ARRAY);
@@ -80,6 +80,29 @@ void SFMLRenderer::close()
 {
 }
 
+void Render(SFMLSprite const& sprite)
+{
+  glPushMatrix();
+  glLoadIdentity();
+  sf::Texture::bind(sprite.tex->tex);
+
+  glTranslatef(sprite.t.x, sprite.t.y, -sprite.t.z);
+  glRotatef(sprite.r, 0.f, 0.f, 1.f);
+  glScalef(sprite.s.x, sprite.s.y, 1.f);
+
+  for (auto const& child : sprite.parent->children())
+  {
+    auto var = child.as<entity>().find<SFMLSprite>();
+    if (var != NULL)
+      Render(*var);
+  }
+
+  // Draw the cube
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  glPopMatrix();
+}
+
 void SFMLRenderer::render(float)
 {
   glEnable(GL_TEXTURE_2D);
@@ -92,32 +115,25 @@ void SFMLRenderer::render(float)
 
   for (auto space : engine::get().spaces)
   {
-	  if (space.second.data() == NULL || !space.second->active)
-		  continue;
+    if (space.second.data() == NULL || !space.second->active)
+      continue;
 
     auto sprites = space.second->get_all(riku::get<SFMLSprite>()).vec;
-    
+
     std::sort(sprites.begin(), sprites.end(),
       [](rk::variant const& a, rk::variant const& b) -> bool {
         return a.as<SFMLSprite>().t.z > b.as<SFMLSprite>().t.z;
       }
     );
 
-	  for (auto& spritevar : sprites)
-	  {
-		  auto& sprite = spritevar.as<SFMLSprite>();
+    for (auto& spritevar : sprites)
+    {
+      auto& sprite = spritevar.as<SFMLSprite>();
 
-		  glPushMatrix();
-		  glLoadIdentity();
-		  sf::Texture::bind(sprite.tex->tex);
+      if (sprite.parent->parent.data() != NULL)
+        continue;
 
-		  glTranslatef(-sprite.t.x, -sprite.t.y, -sprite.t.z);
-		  glRotatef(timeElapsed * sprite.r, 0.f, 0.f, 1.f);
-
-		  // Draw the cube
-		  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		  glPopMatrix();
-	  }
+      Render(sprite);
+    }
   }
 }

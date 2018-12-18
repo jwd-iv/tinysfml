@@ -16,7 +16,8 @@ void SFMLWindow::initialize()
   contextSettings.depthBits = 24;
   contextSettings.sRgbCapable = false;
   // Create the main window
-  g_sWindow = new sf::Window(sf::VideoMode(640, 480), "SFML window with OpenGL", sf::Style::Default, contextSettings);
+  g_sWindow = new sf::Window(sf::VideoMode(1600, 900), "SFML window with OpenGL", sf::Style::Default, contextSettings);
+  //g_sWindow = new sf::Window(sf::VideoMode::getDesktopMode(), "SFML window with OpenGL", sf::Style::None, contextSettings);
   g_sWindow->setVerticalSyncEnabled(true);
 
   // Make the window the active target for OpenGL calls
