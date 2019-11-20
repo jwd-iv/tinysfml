@@ -11,7 +11,7 @@ glm::vec3 SFMLSprite::scl() const
   return s;
 }
 
-glm::float_t SFMLSprite::rot() const
+float SFMLSprite::rot() const
 {
   return r;
 }
@@ -28,7 +28,7 @@ bool SFMLSprite::set_scl(glm::vec3 scl)
   return true;
 }
 
-bool SFMLSprite::set_rot(glm::float_t rot)
+bool SFMLSprite::set_rot(float rot)
 {
   r = rot;
   return true;

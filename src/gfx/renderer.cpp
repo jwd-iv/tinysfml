@@ -82,11 +82,14 @@ void SFMLRenderer::close()
 
 void Render(SFMLSprite const& sprite)
 {
+  if (sprite.tex.to<sfmlTexture>() == NULL)
+    return;
+
   glPushMatrix();
   glLoadIdentity();
   sf::Texture::bind(sprite.tex->tex);
 
-  glTranslatef(sprite.t.x, sprite.t.y, -sprite.t.z);
+  glTranslatef(sprite.t.x, sprite.t.y, sprite.t.z);
   glRotatef(sprite.r, 0.f, 0.f, 1.f);
   glScalef(sprite.s.x, sprite.s.y, 1.f);
 
@@ -122,7 +125,7 @@ void SFMLRenderer::render(float)
 
     std::sort(sprites.begin(), sprites.end(),
       [](rk::variant const& a, rk::variant const& b) -> bool {
-        return a.as<SFMLSprite>().t.z > b.as<SFMLSprite>().t.z;
+        return a.as<SFMLSprite>().t.z < b.as<SFMLSprite>().t.z;
       }
     );
 
