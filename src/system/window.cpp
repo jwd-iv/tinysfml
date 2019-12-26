@@ -16,8 +16,8 @@ void SFMLWindow::initialize()
   contextSettings.depthBits = 24;
   contextSettings.sRgbCapable = false;
   // Create the main window
-  g_sWindow = new sf::Window(sf::VideoMode(1600, 900), "SFML window with OpenGL", sf::Style::Default, contextSettings);
-  //g_sWindow = new sf::Window(sf::VideoMode::getDesktopMode(), "SFML window with OpenGL", sf::Style::None, contextSettings);
+  //g_sWindow = new sf::Window(sf::VideoMode(1600, 900), "SFML window with OpenGL", sf::Style::Default, contextSettings);
+  g_sWindow = new sf::Window(sf::VideoMode::getDesktopMode(), "SFML window with OpenGL", sf::Style::None, contextSettings);
   g_sWindow->setVerticalSyncEnabled(true);
 
   // Make the window the active target for OpenGL calls
@@ -26,23 +26,6 @@ void SFMLWindow::initialize()
   // sf::Shader::isAvailable() at least once before calling
   // setActive(), as those functions will cause a context switch
   g_sWindow->setActive();
-
-  // Enable Z-buffer read and write
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-  glClearDepth(1.f);
-
-  // Disable lighting
-  glDisable(GL_LIGHTING);
-
-  // Configure the viewport (the same size as the window)
-  glViewport(0, 0, g_sWindow->getSize().x, g_sWindow->getSize().y);
-
-  // Setup a perspective projection
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  GLfloat ratio = static_cast<float>(g_sWindow->getSize().x) / g_sWindow->getSize().y;
-  glFrustum(-ratio, ratio, -1.f, 1.f, 1.f, 500.f);
 }
 
 void SFMLWindow::update(float dt)

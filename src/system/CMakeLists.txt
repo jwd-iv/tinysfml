@@ -12,6 +12,7 @@ set_target_properties(tinysfml-sys PROPERTIES
 target_link_libraries(tinysfml-sys tiny)
 target_link_libraries(tinysfml-sys sfml-system)
 target_link_libraries(tinysfml-sys sfml-window)
+target_link_libraries(tinysfml-sys sfml-main)
 
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/tiny/sfml/sys

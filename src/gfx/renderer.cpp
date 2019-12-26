@@ -7,6 +7,8 @@
 #include "tiny\sfml\gfx\texture.h"
 #include "tiny\editor\inspector.h"
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 static const GLfloat square[] =
 {
@@ -23,10 +25,10 @@ static float timeElapsed = .0f;
 using namespace tiny;
 
 void SFMLRenderer::initialize()
-{
+{ 
   // Enable Z-buffer read and write
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
   glClearDepth(1.f);
 
   // Disable lighting
@@ -57,22 +59,68 @@ void SFMLRenderer::initialize()
 
 bool inspected = false;
 
+unsigned long long frame = 0;
+
+void UpdateSpriteCalculations(SFMLSprite& sprite, glm::mat4 parent = glm::mat4(1.f));
+void UpdateChildCalculations(tiny::entity* ent, glm::mat4 parent);
+void Render(SFMLSprite const& sprite);
+
+bool EntityOrParentHasSprite(tiny::entity* ent)
+{
+  if (ent == NULL)
+    return false;
+
+  return (ent->find<SFMLSprite>() != NULL)
+    ||
+    EntityOrParentHasSprite(ent->parent);
+}
+
 void SFMLRenderer::update(float dt)
 {
   timeElapsed += dt;
+  ++frame;
 
-  if(!inspected)
   for (auto spacename : engine::get().spaces)
   {
-    for (auto& sprite : spacename.second->get_all(riku::get<SFMLSprite>()))
+    for (auto& comp : spacename.second->get_all(riku::get<DriftComp>()))
     {
-      systems::get<inspector>()->inspect(sprite);
-      inspected = true;
-      break;
+      auto& drift = comp.as<DriftComp>();
+
+      if (drift.sprite.data() == NULL)
+        drift.sprite = drift.parent->find<SFMLSprite>();
+
+      if (drift.sprite.data() == NULL)
+        throw "DriftComp requires an SFMLSprite!";
+
+      drift.sprite->t.x += drift.speed * dt;
     }
 
-    if (inspected)
-      break;
+    for (auto& comp : spacename.second->get_all(riku::get<WaveComp>()))
+    {
+      auto& Wave = comp.as<WaveComp>();
+
+      if (Wave.sprite.data() == NULL)
+        Wave.sprite = Wave.parent->find<SFMLSprite>();
+
+      if (Wave.sprite.data() == NULL)
+        throw "WaveComp requires an SFMLSprite!";
+
+      Wave.sprite->r = -5 * sin(.8 * frame * dt + Wave.sprite->t.x);
+    }
+
+    for (auto& comp : spacename.second->get_all(riku::get<SFMLSprite>()))
+    {
+      if (!inspected)
+      {
+        systems::get<inspector>()->inspect(comp);
+        inspected = true;
+      }
+
+      auto& sprite = comp.as<SFMLSprite>();
+
+      if (sprite.frame != frame && !EntityOrParentHasSprite(sprite.parent->parent))
+        UpdateSpriteCalculations(sprite);
+    }
   }
 }
 
@@ -80,30 +128,39 @@ void SFMLRenderer::close()
 {
 }
 
-void Render(SFMLSprite const& sprite)
+void UpdateSpriteCalculations(SFMLSprite& sprite, glm::mat4 parent)
 {
-  if (sprite.tex.to<sfmlTexture>() == NULL)
+  glm::mat4 calc = glm::mat4(1.f);
+  sprite.s.z = 1.f;
+
+  calc = glm::translate(calc, sprite.t);
+  calc = glm::rotate(calc, glm::radians(sprite.r), glm::vec3(0.f, 0.f, 1.f));
+  calc = glm::scale(calc, sprite.s);
+
+  sprite.calc = parent * calc;
+  sprite.calcZ = (sprite.calc * glm::vec4(0.f, 0.f, 0.f, 1.f)).z;
+
+  sprite.frame = frame;
+
+  for (auto& siblingEnt : sprite.parent->children)
+    UpdateChildCalculations(siblingEnt.to<tiny::entity>(), sprite.calc);
+}
+
+void UpdateChildCalculations(tiny::entity* ent, glm::mat4 parent)
+{
+  if (ent == NULL)
     return;
 
-  glPushMatrix();
-  glLoadIdentity();
-  sf::Texture::bind(sprite.tex->tex);
-
-  glTranslatef(sprite.t.x, sprite.t.y, sprite.t.z);
-  glRotatef(sprite.r, 0.f, 0.f, 1.f);
-  glScalef(sprite.s.x, sprite.s.y, 1.f);
-
-  for (auto const& child : sprite.parent->children())
+  auto sprite = ent->find<SFMLSprite>();
+  
+  if (sprite != NULL)
   {
-    auto var = child.as<entity>().find<SFMLSprite>();
-    if (var != NULL)
-      Render(*var);
+    sprite->hasParent = true;
+    UpdateSpriteCalculations(*sprite, parent);
   }
-
-  // Draw the cube
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-  glPopMatrix();
+  else
+    for (auto& child : ent->children)
+      UpdateChildCalculations(child.to<tiny::entity>(), parent);
 }
 
 void SFMLRenderer::render(float)
@@ -124,8 +181,8 @@ void SFMLRenderer::render(float)
     auto sprites = space.second->get_all(riku::get<SFMLSprite>()).vec;
 
     std::sort(sprites.begin(), sprites.end(),
-      [](rk::variant const& a, rk::variant const& b) -> bool {
-        return a.as<SFMLSprite>().t.z < b.as<SFMLSprite>().t.z;
+      [](tiny::cref a, tiny::cref b) -> bool {
+        return a.as<SFMLSprite>().calcZ < b.as<SFMLSprite>().calcZ;
       }
     );
 
@@ -133,10 +190,24 @@ void SFMLRenderer::render(float)
     {
       auto& sprite = spritevar.as<SFMLSprite>();
 
-      if (sprite.parent->parent.data() != NULL)
-        continue;
-
       Render(sprite);
     }
   }
+}
+
+void Render(SFMLSprite const& sprite)
+{
+  if (sprite.tex.to<sfmlTexture>() == NULL)
+    return;
+
+  glPushMatrix();
+  glLoadMatrixf(glm::value_ptr(sprite.calc));
+
+  sf::Texture::bind(sprite.tex->tex);
+  glColor4fv(glm::value_ptr(sprite.color));
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MULT);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  glPopMatrix();
 }

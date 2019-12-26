@@ -10,6 +10,13 @@ rkType(SFMLRenderer, rkParent(tiny::renderer) rkDefaultFactory)
 
 rkType(sfmlTexture, rkParent(tiny::resource) rkDefaultFactory)
 
-rkType(SFMLSprite, rkParent(tiny::component) rkDefaultFactory
-  rkMember(t) rkMember(r) rkMember(s) rkMember(tex)
+rkType(SFMLSprite, rkParent(tiny::transform) rkDefaultFactory
+  rkMember(t) rkMember(r) rkMember(s) rkMember(tex) rkMember(color)
+)
+
+rkType(WaveComp, rkParent(tiny::component) rkDefaultFactory
+)
+
+rkType(DriftComp, rkParent(tiny::component) rkDefaultFactory
+  rkMember(speed)
 )
